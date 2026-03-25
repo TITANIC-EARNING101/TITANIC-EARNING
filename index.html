@@ -118,6 +118,12 @@
         #expiry-timer-box { background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: center; font-weight: bold; display: none;}
         #custom-admin-notif-box { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: none; position: relative;}
         .close-custom-msg { position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 18px;}
+
+        /* MONTHLY EARNINGS BADGE CSS */
+        .earning-badge { display: flex; justify-content: space-around; background: #f8f9fa; padding: 8px; border-radius: 8px; margin-top: 10px; border: 1px solid #eee;}
+        .eb-item { text-align: center; }
+        .eb-item p { font-size: 10px; color: #777; font-weight: bold; }
+        .eb-item span { font-size: 12px; color: #2ecc71; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -276,7 +282,7 @@
                         <select id="renewPlanSelect" class="form-control"></select>
                         
                         <label class="auth-label">Sender Number (Order Num)</label>
-                        <input type="number" id="renewNumber" class="form-control" placeholder="03..">
+                        <input type="number" id="renewNumber" class="form-control" placeholder="03XXXXXXXXX">
                         
                         <label class="auth-label">Trx ID (Payment UID)</label>
                         <input type="text" id="renewTrx" class="form-control" placeholder="Enter Trx ID">
@@ -300,7 +306,8 @@
 
                     <div class="page-header-box">
                         <h1>Google Ads</h1>
-                        <p id="dash-limit">Limit: Daily Videos</p>
+                        <p id="dash-limit" style="font-weight:bold; color:#ff5722;">Limit: 10 Videos Daily (10 Seconds Each)</p>
+                        <div id="active-plan-earnings-summary"></div>
                     </div>
                     <div id="ads-container"></div>
                 </div>
@@ -693,6 +700,8 @@
 
     <!-- GOOGLE ADMOB BANNER AREA (FIXED AT BOTTOM) -->
     <div id="admob-banner-container" style="position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; z-index: 9999; display: flex; justify-content: center; align-items: center; border-top: 1px solid #ddd; min-height: 50px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-7478074800044955"
+     crossorigin="anonymous"></script>
         <ins class="adsbygoogle"
              style="display:inline-block;width:320px;height:50px"
              data-ad-client="ca-app-pub-7478074800044955"
@@ -762,19 +771,21 @@
         const ADMIN_PASS = "Ta.732419";
         
         let plans = {}; 
+        
+        // UPDATED PLANS ACCORDING TO IMAGE (90 DAYS)
         const defaultPlans = {
-            1: {name: 'STARTER', price: 600, videos: 10, ad_reward: 5, days: 30}, 
-            2: {name: 'BASIC', price: 1600, videos: 10, ad_reward: 7, days: 30},
-            3: {name: 'STANDARD', price: 3200, videos: 10, ad_reward: 15, days: 30}, 
-            4: {name: 'PRO', price: 6400, videos: 10, ad_reward: 25, days: 30},
-            5: {name: 'PREMIUM', price: 12800, videos: 10, ad_reward: 50, days: 30}, 
-            6: {name: 'SPECIAL', price: 25600, videos: 10, ad_reward: 100, days: 30},
-            7: {name: 'ELITE', price: 51200, videos: 10, ad_reward: 195, days: 30},
-            8: {name: 'MASTER', price: 102400, videos: 10, ad_reward: 370, days: 30},
-            9: {name: 'GRAND', price: 204800, videos: 10, ad_reward: 715, days: 30},
-            10: {name: 'ULTIMATE', price: 409600, videos: 10, ad_reward: 1600, days: 30},
-            11: {name: 'MAXIMUM', price: 819200, videos: 10, ad_reward: 3100, days: 30},
-            12: {name: 'LEGENDARY', price: 1638400, videos: 10, ad_reward: 6200, days: 30} 
+            1: {name: 'STARTER', price: 600, videos: 10, ad_reward: 5, days: 90}, 
+            2: {name: 'BASIC', price: 1600, videos: 10, ad_reward: 7, days: 90},
+            3: {name: 'STANDARD', price: 3200, videos: 10, ad_reward: 15, days: 90}, 
+            4: {name: 'PRO', price: 6400, videos: 10, ad_reward: 25, days: 90},
+            5: {name: 'PREMIUM', price: 12800, videos: 10, ad_reward: 50, days: 90}, 
+            6: {name: 'SPECIAL', price: 25600, videos: 10, ad_reward: 100, days: 90},
+            7: {name: 'ELITE', price: 51200, videos: 10, ad_reward: 195, days: 90},
+            8: {name: 'MASTER', price: 102400, videos: 10, ad_reward: 370, days: 90},
+            9: {name: 'GRAND', price: 204800, videos: 10, ad_reward: 715, days: 90},
+            10: {name: 'ULTIMATE', price: 409600, videos: 10, ad_reward: 1600, days: 90},
+            11: {name: 'MAXIMUM', price: 819200, videos: 10, ad_reward: 3100, days: 90},
+            12: {name: 'LEGENDARY', price: 1638400, videos: 10, ad_reward: 6200, days: 90} 
         };
 
         db.ref('plans').on('value', snap => {
@@ -934,7 +945,7 @@
                 let timeElapsed = Date.now() - approvedAt;
                 
                 let p = plans[userData.plan_id];
-                let expiryDays = (p && p.days) ? p.days : 30; 
+                let expiryDays = (p && p.days) ? p.days : 90; 
                 
                 if (timeElapsed > (expiryDays * 24 * 60 * 60 * 1000)) {
                     if (userData.renew_plan_status === 'active') {
@@ -1150,7 +1161,26 @@
             if(Object.keys(plans).length === 0) { html = "<p style='color:#999;'>Loading Plans...</p>"; }
             else {
                 for(let id in plans) { 
-                    html += `<div class="profile-card" style="border:2px solid #3498db; text-align:center;"><h3 style="color:#1a4a4a;">TITANIC ${plans[id].name}</h3><h2 style="margin:10px 0;">Rs. ${plans[id].price}</h2><button onclick="selectPlan(${id})" class="auth-btn-new" style="margin:0;">BUY PLAN</button></div>`; 
+                    let p = plans[id];
+                    let daily = (p.videos || 10) * (p.ad_reward || 5);
+                    let monthly = daily * 30;
+
+                    html += `
+                    <div class="profile-card" style="border:2px solid #3498db; text-align:center;">
+                        <h3 style="color:#1a4a4a;">TITANIC ${p.name}</h3>
+                        <h2 style="margin:10px 0;">Rs. ${p.price}</h2>
+                        <p style="font-size:12px; color:#666; margin-bottom:5px;">Validity: 90 Days</p>
+                        <p style="font-size:12px; color:#ff5722; font-weight:bold; margin-bottom:10px;">Daily: ${p.videos} Ads (10s Each)</p>
+                        
+                        <div class="earning-badge">
+                            <div class="eb-item"><p>MONTH 1</p><span>Rs. ${monthly}</span></div>
+                            <div class="eb-item"><p>MONTH 2</p><span>Rs. ${monthly}</span></div>
+                            <div class="eb-item"><p>MONTH 3</p><span>Rs. ${monthly}</span></div>
+                        </div>
+                        <p style="font-size:11px; color:#3498db; margin:10px 0; font-weight:bold;">Total 90-Day Earning: Rs. ${monthly * 3}</p>
+                        
+                        <button onclick="selectPlan(${id})" class="auth-btn-new" style="margin:0;">BUY PLAN</button>
+                    </div>`; 
                 }
             }
             document.getElementById('plans-container').innerHTML = html;
@@ -1197,7 +1227,7 @@
         function updatePlanTimer() {
             if(userData.role === 'admin') return;
             let p = plans[userData.plan_id];
-            let expiryDays = (p && p.days) ? p.days : 30; 
+            let expiryDays = (p && p.days) ? p.days : 90; 
             let diff = (userData.plan_approved_at || Date.now()) + (expiryDays * 24 * 60 * 60 * 1000) - Date.now(); 
             if (diff <= 0) {
                 clearInterval(planTimerInterval); 
@@ -1221,7 +1251,7 @@
             let timerBox = document.getElementById('expiry-timer-box');
             if (userData.plan_status === 'active' && userData.role !== 'admin') {
                 let p = plans[userData.plan_id];
-                let expiryDays = (p && p.days) ? p.days : 30;
+                let expiryDays = (p && p.days) ? p.days : 90;
                 let expiryTime = (userData.plan_approved_at || Date.now()) + (expiryDays * 24 * 60 * 60 * 1000);
                 
                 let checkExpiry = () => {
@@ -1247,8 +1277,19 @@
             let p = plans[userData.plan_id]; 
             if(!p) return; 
             
+            // SHOW EARNING BREAKDOWN ON DASHBOARD TOO
+            let daily = (p.videos || 10) * (p.ad_reward || 5);
+            let monthly = daily * 30;
+            document.getElementById('active-plan-earnings-summary').innerHTML = `
+                <div class="earning-badge" style="margin-top:15px; background:white;">
+                    <div class="eb-item"><p>1st Month</p><span>Rs. ${monthly}</span></div>
+                    <div class="eb-item"><p>2nd Month</p><span>Rs. ${monthly}</span></div>
+                    <div class="eb-item"><p>3rd Month</p><span>Rs. ${monthly}</span></div>
+                </div>
+            `;
+
             let today = getTodayStr(); let watchedArr = (userData.daily_ads && userData.daily_ads[today]) ? userData.daily_ads[today] : [];
-            document.getElementById('dash-limit').innerText = `Limit: ${p.videos} Videos Daily`;
+            document.getElementById('dash-limit').innerText = `Limit: ${p.videos} Videos Daily (10 Seconds Each)`;
             
             if(planTimerInterval) clearInterval(planTimerInterval);
             if(userData.role !== 'admin') {
@@ -1261,7 +1302,7 @@
                 let isWatched = watchedArr.includes(i);
                 if (!isWatched && displayedAdsCount < 10) { 
                     let vidSrc = reliableVideos[(i - 1) % reliableVideos.length];
-                    html += `<div class="video-card"><div class="video-player"><video class="real-video" src="${vidSrc}" playsinline></video><div class="video-overlay"><div class="play-icon" onclick="playAd(this, ${i})"><i class="fas fa-play"></i></div></div></div><div class="run-btn">Run Video</div></div>`; 
+                    html += `<div class="video-card"><div class="video-player"><video class="real-video" src="${vidSrc}" playsinline></video><div class="video-overlay"><div class="play-icon" onclick="playAd(this, ${i})"><i class="fas fa-play"></i></div></div></div><div class="run-btn">Run 10s Video</div></div>`; 
                     displayedAdsCount++;
                 }
             }
@@ -1278,10 +1319,10 @@
             let playerDiv = btn.closest('.video-player'); let video = playerDiv.querySelector('.real-video');
             let runBtn = playerDiv.nextElementSibling; playerDiv.querySelector('.video-overlay').style.display = 'none';
             video.currentTime = 0; video.play(); video.controls = false; runBtn.style.background = "#f39c12";
-            let timeLeft = 10; runBtn.innerHTML = `Watching... ${timeLeft}s`;
+            let timeLeft = 10; runBtn.innerHTML = `Watching Ad... ${timeLeft}s`;
             let timer = setInterval(() => {
                 timeLeft--;
-                if(timeLeft > 0) { runBtn.innerHTML = `Watching... ${timeLeft}s`; } 
+                if(timeLeft > 0) { runBtn.innerHTML = `Watching Ad... ${timeLeft}s`; } 
                 else {
                     clearInterval(timer); video.pause(); 
                     let today = getTodayStr(); let watchedArr = (userData.daily_ads && userData.daily_ads[today]) ? userData.daily_ads[today] : []; watchedArr.push(vidId);
@@ -1409,7 +1450,7 @@
         function updateWithdrawPlaceholder() { let method = document.getElementById('w-method').value; let accInput = document.getElementById('w-acc'); if (method === 'Binance ID') { accInput.placeholder = "Enter Binance ID"; } else { accInput.placeholder = "Enter 24-digit IBAN "; } }
         function loadWalletUI() { 
             document.getElementById('w-bal').innerText = userData.balance||0; document.getElementById('w-with').innerText = userData.total_withdraw||0; document.getElementById('w-tot').innerText = ((userData.balance||0) + (userData.total_withdraw||0)); 
-            db.ref('withdrawals').orderByChild('uid').equalTo(currentUserUid).on('value', snap => { let histHtml = ""; if(snap.exists()) { let items = []; snap.forEach(c => { items.push(c.val()); }); items.reverse().forEach(w => { let c = w.status === 'Approved' ? '#2ecc71' : (w.status === 'Rejected' ? '#e74c3c' : '#f39c12'); let rejText = (w.status === 'Rejected' && w.reject_reason) ? `<br><small style="color:#e74c3c;">Reason: ${w.reject_reason}</small>` : ''; histHtml += `<tr><td>${w.date.split(',')[0]}</td><td style="color:red;">-${w.amount}</td><td><span style="background:${c}; color:#fff; padding:3px 6px; border-radius:5px; font-size:10px;">${w.status}</span>${rejText}</td></tr>`; }); } document.getElementById('w-history-list').innerHTML = histHtml || "<tr><td colspan='3' style='text-align:center;'>No history</td></tr>"; });
+            db.ref('withdrawals').orderByChild('uid').equalTo(currentUserUid).on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { let w = ch.val(); let color = w.status === 'Approved' ? '#2ecc71' : (w.status === 'Rejected' ? '#e74c3c' : '#f39c12'); let rejText = (w.status === 'Rejected' && w.reject_reason) ? `<br><small style="color:#e74c3c;">Reason: ${w.reject_reason}</small>` : ''; html += `<tr><td>${w.date.split(',')[0]}</td><td style="color:red;">-${w.amount}</td><td><span style="background:${color}; color:#fff; padding:3px 6px; border-radius:5px; font-size:10px;">${w.status}</span>${rejText}</td></tr>`; }); } document.getElementById('w-history-list').innerHTML = html || "<tr><td colspan='3' style='text-align:center;'>No history</td></tr>"; });
         }
         
         function requestWithdraw() {
@@ -1538,7 +1579,7 @@
                         let expiryText = "N/A";
                         if (u.plan_status === 'active' && u.plan_id >= 0 && u.role !== 'admin') {
                             let approvedAt = u.plan_approved_at || Date.now();
-                            let expiryDays = plans[u.plan_id] ? (plans[u.plan_id].days || 30) : 30; 
+                            let expiryDays = plans[u.plan_id] ? (plans[u.plan_id].days || 90) : 90; 
                             let expiryTime = approvedAt + (expiryDays * 24 * 60 * 60 * 1000);
                             let timeDiff = expiryTime - Date.now();
                             if (timeDiff > 0) {
@@ -1616,7 +1657,7 @@
             let p = parseInt(document.getElementById('new-plan-price').value);
             let v = parseInt(document.getElementById('new-plan-videos').value);
             let r = parseInt(document.getElementById('new-plan-reward').value);
-            let d = parseInt(document.getElementById('new-plan-days').value) || 30; 
+            let d = parseInt(document.getElementById('new-plan-days').value) || 90; 
             if(!n || !p || !v || !r) return alert("Please fill all fields!");
             let maxId = 0;
             for(let key in plans) { if(parseInt(key) > maxId) maxId = parseInt(key); }
@@ -1627,13 +1668,13 @@
                 document.getElementById('new-plan-price').value = '';
                 document.getElementById('new-plan-videos').value = '';
                 document.getElementById('new-plan-reward').value = '';
-                document.getElementById('new-plan-days').value = '30';
+                document.getElementById('new-plan-days').value = '90';
             });
         }
         function loadAdminManagePlansUI() {
             let plansHtml = "";
             for(let id in plans) {
-                let d = plans[id].days ? plans[id].days : 30;
+                let d = plans[id].days ? plans[id].days : 90;
                 plansHtml += `<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:10px; border:1px solid #ddd; margin-bottom:5px; border-radius:5px;"><span style="font-size:13px;"><b>${plans[id].name}</b><br><span style="color:#2ecc71;">Rs. ${plans[id].price}</span> | ${d} Days | ${plans[id].videos} Ads</span><button onclick="adminDeletePlan('${id}')" class="admin-btn" style="margin:0;">Delete</button></div>`;
             }
             document.getElementById('admin-manage-plans').innerHTML = plansHtml || "<p style='font-size:12px; color:#777;'>No plans available.</p>";
