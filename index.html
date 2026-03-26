@@ -236,7 +236,7 @@
                 <div id="page-plans" class="page">
                     <div style="text-align:center; padding-top:10px;">
                         <div id="plan-reject-msg" class="alert-error" style="display:none; text-align:center;"></div>
-                        <h2>Select Package</h2><p style="color:#666; margin-bottom: 20px;">Active plan required to earn.</p>
+                        <h2>Select Package</h2><p style="color:#666; margin-bottom: 20px;">ACTIVE PLAN REQUIRED TO EARN. TITANIC EARNING PLATFORM OFFICIAL.TITANIC EARNING PLAN LIST </p>
                         <div id="plans-container">
                             <p style="color:#999; text-align:center;">Loading Plans...</p>
                         </div>
@@ -252,6 +252,7 @@
                     </div>
                     <div class="profile-card">
                         <h3>Submit Details</h3><p id="selected-plan-text" style="color:#777;"></p>
+                        <input type="text" id="payAccName" class="form-control" placeholder="Sender Account Name">
                         <input type="number" id="payNumber" class="form-control" placeholder="Sender Number">
                         <input type="text" id="payTrx" class="form-control" placeholder="Trx ID (UID)">
                         <button onclick="submitPayment()" class="auth-btn-new">Submit Request</button>
@@ -281,8 +282,11 @@
                         <label class="auth-label">Select Next Plan</label>
                         <select id="renewPlanSelect" class="form-control"></select>
                         
+                        <label class="auth-label">Sender Account Name</label>
+                        <input type="text" id="renewAccName" class="form-control" placeholder="Account Name">
+
                         <label class="auth-label">Sender Number (Order Num)</label>
-                        <input type="number" id="renewNumber" class="form-control" placeholder="03XXXXXXXXX">
+                        <input type="number" id="renewNumber" class="form-control" placeholder="03123456789">
                         
                         <label class="auth-label">Trx ID (Payment UID)</label>
                         <input type="text" id="renewTrx" class="form-control" placeholder="Enter Trx ID">
@@ -306,7 +310,7 @@
 
                     <div class="page-header-box">
                         <h1>Google Ads</h1>
-                        <p id="dash-limit" style="font-weight:bold; color:#ff5722;">Limit: 10 Videos Daily (10 Seconds Each)</p>
+                        <p id="dash-limit" style="font-weight:bold; color:#ff5722;">Limit: 10 Videos Daily</p>
                         <div id="active-plan-earnings-summary"></div>
                     </div>
                     <div id="ads-container"></div>
@@ -341,7 +345,7 @@
                     <div class="profile-card">
                         <h3 style="margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:5px;">Bind Phone</h3>
                         <p id="phone-hint" style="font-size:12px; color:#e74c3c; margin-bottom:10px;">Phone number is required for withdrawals. <b>Cannot be changed later!</b></p>
-                        <input type="number" id="prof-phone" class="form-control" placeholder="03XXXXXXXXX">
+                        <input type="number" id="prof-phone" class="form-control" placeholder="03123456789">
                         <button id="btn-save-phone" onclick="saveProfilePhone()" class="auth-btn-new" style="background:#2ecc71; margin-bottom:0;">Bind Phone</button>
                     </div>
 
@@ -1094,11 +1098,13 @@
                         plan_reject_reason: '', 
                         payment_num: '', 
                         payment_trx: '', 
-                        total_plans_bought: 0,
+                        payment_account_name: '',
+                        total_plans_bought: (userData ? (userData.total_plans_bought || 0) : 0),
                         renew_plan_id: -1, 
                         renew_plan_status: 'none', 
                         renew_payment_num: '', 
                         renew_payment_trx: '', 
+                        renew_payment_account_name: '',
                         renew_reject_reason: '', 
                         invite_code: generateId(), 
                         referred_by: inv, 
@@ -1187,8 +1193,11 @@
         }
         function selectPlan(id) { selectedPlanId = id; document.getElementById('selected-plan-text').innerText = `TITANIC ${plans[id].name} (Rs. ${plans[id].price})`; goTo('page-payment'); }
         function submitPayment() { 
-            let num = document.getElementById('payNumber').value; let trx = document.getElementById('payTrx').value; if(!num || !trx) return alert("Please enter Sender Number and Trx ID!"); 
-            db.ref('users/' + currentUserUid).update({ plan_id: selectedPlanId, plan_status: 'pending', payment_num: num, payment_trx: trx, plan_reject_reason: '' }).then(() => { alert("Payment details sent successfully! Please wait for the Company to manually approve it."); }); 
+            let accName = document.getElementById('payAccName').value;
+            let num = document.getElementById('payNumber').value; 
+            let trx = document.getElementById('payTrx').value; 
+            if(!accName || !num || !trx) return alert("Please enter Account Name, Sender Number and Trx ID!"); 
+            db.ref('users/' + currentUserUid).update({ plan_id: selectedPlanId, plan_status: 'pending', payment_account_name: accName, payment_num: num, payment_trx: trx, plan_reject_reason: '' }).then(() => { alert("Payment details sent successfully! Please wait for the Company to manually approve it."); }); 
         }
 
         // ================= RENEW / UPGRADE PLAN =================
@@ -1214,10 +1223,11 @@
         }
         function submitRenewal() {
             let pId = document.getElementById('renewPlanSelect').value;
+            let accName = document.getElementById('renewAccName').value;
             let num = document.getElementById('renewNumber').value;
             let trx = document.getElementById('renewTrx').value;
-            if(!num || !trx) return alert("Please enter Sender Number and Trx ID!");
-            db.ref('users/' + currentUserUid).update({ renew_plan_id: parseInt(pId), renew_plan_status: 'pending', renew_payment_num: num, renew_payment_trx: trx, renew_reject_reason: '' }).then(() => {
+            if(!accName || !num || !trx) return alert("Please enter Account Name, Sender Number and Trx ID!");
+            db.ref('users/' + currentUserUid).update({ renew_plan_id: parseInt(pId), renew_plan_status: 'pending', renew_payment_account_name: accName, renew_payment_num: num, renew_payment_trx: trx, renew_reject_reason: '' }).then(() => {
                 alert("Advance Renewal Payment submitted successfully! Please wait for the Company to manually verify it.");
                 goTo('page-renew');
             });
@@ -1289,7 +1299,7 @@
             `;
 
             let today = getTodayStr(); let watchedArr = (userData.daily_ads && userData.daily_ads[today]) ? userData.daily_ads[today] : [];
-            document.getElementById('dash-limit').innerText = `Limit: ${p.videos} Videos Daily (10 Seconds Each)`;
+            document.getElementById('dash-limit').innerText = `Limit: ${p.videos} Videos Daily`;
             
             if(planTimerInterval) clearInterval(planTimerInterval);
             if(userData.role !== 'admin') {
@@ -1302,7 +1312,7 @@
                 let isWatched = watchedArr.includes(i);
                 if (!isWatched && displayedAdsCount < 10) { 
                     let vidSrc = reliableVideos[(i - 1) % reliableVideos.length];
-                    html += `<div class="video-card"><div class="video-player"><video class="real-video" src="${vidSrc}" playsinline></video><div class="video-overlay"><div class="play-icon" onclick="playAd(this, ${i})"><i class="fas fa-play"></i></div></div></div><div class="run-btn">Run 10s Video</div></div>`; 
+                    html += `<div class="video-card"><div class="video-player"><video class="real-video" src="${vidSrc}" playsinline></video><div class="video-overlay"><div class="play-icon" onclick="playAd(this, ${i})"><i class="fas fa-play"></i></div></div></div><div class="run-btn">Run Video</div></div>`; 
                     displayedAdsCount++;
                 }
             }
@@ -1319,10 +1329,10 @@
             let playerDiv = btn.closest('.video-player'); let video = playerDiv.querySelector('.real-video');
             let runBtn = playerDiv.nextElementSibling; playerDiv.querySelector('.video-overlay').style.display = 'none';
             video.currentTime = 0; video.play(); video.controls = false; runBtn.style.background = "#f39c12";
-            let timeLeft = 10; runBtn.innerHTML = `Watching Ad... ${timeLeft}s`;
+            let timeLeft = 10; runBtn.innerHTML = `Watching Ad...`;
             let timer = setInterval(() => {
                 timeLeft--;
-                if(timeLeft > 0) { runBtn.innerHTML = `Watching Ad... ${timeLeft}s`; } 
+                if(timeLeft > 0) { runBtn.innerHTML = `Watching Ad...`; } 
                 else {
                     clearInterval(timer); video.pause(); 
                     let today = getTodayStr(); let watchedArr = (userData.daily_ads && userData.daily_ads[today]) ? userData.daily_ads[today] : []; watchedArr.push(vidId);
@@ -1438,7 +1448,7 @@
             // CHECK IF EARNINGS STOPPED
             if(isEarningStopped()) return;
 
-            if (userData.plan_status !== 'active') return alert("You need an active plan to claim rewards!"); let now = Date.now(); let fallbackLast = (type === 'daily') ? 0 : userData.account_created_at; let last = userData[lastClaimKey] || fallbackLast; let count = userData[countKey]||0; if (count < maxClaims && (now - last) >= duration) { db.ref('users/'+currentUserUid).update({ [countKey]: count+1, [lastClaimKey]: now, balance: (userData.balance||0)+amount }); logEarning(amount, sourceName); alert(`${sourceName} Claimed!`); } 
+            if (userData.plan_status !== 'active') return alert("You need an active plan to claim rewards!"); let now = Date.now(); let fallbackLast = (type === 'daily') ? 0 : (userData ? userData.account_created_at : Date.now()); let last = userData[lastClaimKey] || fallbackLast; let count = userData[countKey]||0; if (count < maxClaims && (now - last) >= duration) { db.ref('users/'+currentUserUid).update({ [countKey]: count+1, [lastClaimKey]: now, balance: (userData.balance||0)+amount }); logEarning(amount, sourceName); alert(`${sourceName} Claimed!`); } 
         }
         function claimDailyReward() { claimReward('daily', 20, 86400000, 30, 'reward_claims_login', 'last_claim_daily', 'Daily Reward'); } 
         function claimWeeklyReward() { claimReward('weekly', 40, 604800000, 30, 'reward_claims_weekly', 'last_claim_weekly', 'Weekly Reward'); } 
@@ -1545,7 +1555,7 @@
                     let pos = index + 1; let icon = pos;
                     if (pos === 1) icon = '<i class="fas fa-crown" style="color:#f1c40f;"></i>'; else if (pos === 2) icon = '<i class="fas fa-medal" style="color:#95a5a6;"></i>'; else if (pos === 3) icon = '<i class="fas fa-award" style="color:#cd7f32;"></i>';
                     let meStyle = pos === 1 ? 'border-left: 4px solid #f1c40f; background: #fffdf5;' : (pos === 2 ? 'border-left: 4px solid #95a5a6; background: #f8f9fa;' : (pos === 3 ? 'border-left: 4px solid #cd7f32; background: #fffaf5;' : ''));
-                    if(item.name === userData.name) meStyle = 'border: 2px solid #2ecc71; background: #e8f5e9;'; 
+                    if(userData && item.name === userData.name) meStyle = 'border: 2px solid #2ecc71; background: #e8f5e9;'; 
                     html += `<div class="rank-item" style="${meStyle}"><div class="rank-pos">${icon}</div><div class="rank-info"><div class="rank-name">${item.name}</div><div class="rank-plan">${item.planName}</div></div><div class="rank-amt">${item.scoreText}</div></div>`;
                 });
                 listContainer.innerHTML = html;
@@ -1565,8 +1575,8 @@
             document.getElementById('set-group-link').value = appSettings.group_link || 'https://whatsapp.com/channel/0029VbCcWry1nozD2cDpPb18';
             loadAdminManagePlansUI();
             db.ref('promos').on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { html += `<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:8px; border:1px solid #ddd; margin-bottom:5px; border-radius:5px;"><span style="font-size:13px;"><b>${ch.key}</b> <span style="color:#2ecc71;">(Rs. ${ch.val().amount})</span></span><button onclick="adminDeletePromo('${ch.key}')" class="admin-btn" style="margin:0;">Delete</button></div>`; }); } document.getElementById('admin-active-promos').innerHTML = html || "<p style='font-size:12px; color:#777;'>No active promo codes.</p>"; });
-            db.ref('users').orderByChild('plan_status').equalTo('pending').on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { let u = ch.val(); html += `<div style="background:#fff; padding:10px; border:1px solid #ddd; margin-bottom:5px; font-size:13px;"><b>${u.name}</b> (${u.email})<br>Plan: <b>${plans[u.plan_id]?plans[u.plan_id].name:'None'}</b><br><span style="color:#e74c3c;">Sender Num:</span> ${u.payment_num}<br><span style="color:#e74c3c;">Trx ID (UID):</span> ${u.payment_trx}<br><button onclick="adminApprovePlan('${ch.key}')" class="admin-btn approve-btn" style="margin-top:10px; width:100%;">Approve Plan</button><div style="display:flex; gap:5px; margin-top:5px;"><input type="text" id="plan-rej-${ch.key}" placeholder="Reason for rejection" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;"><button onclick="adminRejectPlan('${ch.key}')" class="admin-btn" style="margin:0;">Reject</button></div></div>`; }); } document.getElementById('admin-pending-plans').innerHTML = html || "<p style='font-size:13px; color:#777;'>No pending new plans.</p>"; });
-            db.ref('users').orderByChild('renew_plan_status').equalTo('pending').on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { let u = ch.val(); html += `<div style="background:#fdf9e3; padding:10px; border:1px solid #f39c12; margin-bottom:5px; font-size:13px;"><b>${u.name}</b> (${u.email})<br>Advance Plan: <b>${plans[u.renew_plan_id]?plans[u.renew_plan_id].name:'None'}</b><br><span style="color:#e74c3c;">Sender Num:</span> ${u.renew_payment_num}<br><span style="color:#e74c3c;">Trx ID (UID):</span> ${u.renew_payment_trx}<br><button onclick="adminApproveRenewal('${ch.key}')" class="admin-btn approve-btn" style="margin-top:10px; width:100%;">Approve Renewal</button><div style="display:flex; gap:5px; margin-top:5px;"><input type="text" id="renew-rej-${ch.key}" placeholder="Reason for rejection" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;"><button onclick="adminRejectRenewal('${ch.key}')" class="admin-btn" style="margin:0;">Reject</button></div></div>`; }); } document.getElementById('admin-pending-renewals').innerHTML = html || "<p style='font-size:13px; color:#777;'>No pending renewals.</p>"; });
+            db.ref('users').orderByChild('plan_status').equalTo('pending').on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { let u = ch.val(); html += `<div style="background:#fff; padding:10px; border:1px solid #ddd; margin-bottom:5px; font-size:13px;"><b>${u.name}</b> (${u.email})<br>Plan: <b>${plans[u.plan_id]?plans[u.plan_id].name:'None'}</b><br><span style="color:#2ecc71;">Account Name:</span> ${u.payment_account_name || 'N/A'}<br><span style="color:#e74c3c;">Sender Num:</span> ${u.payment_num}<br><span style="color:#e74c3c;">Trx ID (UID):</span> ${u.payment_trx}<br><button onclick="adminApprovePlan('${ch.key}')" class="admin-btn approve-btn" style="margin-top:10px; width:100%;">Approve Plan</button><div style="display:flex; gap:5px; margin-top:5px;"><input type="text" id="plan-rej-${ch.key}" placeholder="Reason for rejection" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;"><button onclick="adminRejectPlan('${ch.key}')" class="admin-btn" style="margin:0;">Reject</button></div></div>`; }); } document.getElementById('admin-pending-plans').innerHTML = html || "<p style='font-size:13px; color:#777;'>No pending new plans.</p>"; });
+            db.ref('users').orderByChild('renew_plan_status').equalTo('pending').on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { let u = ch.val(); html += `<div style="background:#fdf9e3; padding:10px; border:1px solid #f39c12; margin-bottom:5px; font-size:13px;"><b>${u.name}</b> (${u.email})<br>Advance Plan: <b>${plans[u.renew_plan_id]?plans[u.renew_plan_id].name:'None'}</b><br><span style="color:#2ecc71;">Account Name:</span> ${u.renew_payment_account_name || 'N/A'}<br><span style="color:#e74c3c;">Sender Num:</span> ${u.renew_payment_num}<br><span style="color:#e74c3c;">Trx ID (UID):</span> ${u.renew_payment_trx}<br><button onclick="adminApproveRenewal('${ch.key}')" class="admin-btn approve-btn" style="margin-top:10px; width:100%;">Approve Renewal</button><div style="display:flex; gap:5px; margin-top:5px;"><input type="text" id="renew-rej-${ch.key}" placeholder="Reason for rejection" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;"><button onclick="adminRejectRenewal('${ch.key}')" class="admin-btn" style="margin:0;">Reject</button></div></div>`; }); } document.getElementById('admin-pending-renewals').innerHTML = html || "<p style='font-size:13px; color:#777;'>No pending renewals.</p>"; });
             db.ref('withdrawals').orderByChild('status').equalTo('Pending').on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { let w = ch.val(); html += `<div style="background:#fff; padding:10px; border:1px solid #ddd; margin-bottom:5px; font-size:13px;"><b>${w.name}</b> | Rs. ${w.amount}<br><small>${w.method}: ${w.acc}</small><br><button onclick="adminApproveWithdraw('${ch.key}', '${w.uid}', ${w.amount})" class="admin-btn approve-btn" style="margin-top:5px; width:100%;">Approve</button><div style="display:flex; gap:5px; margin-top:5px;"><input type="text" id="with-rej-${ch.key}" placeholder="Reject Reason" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;"><button onclick="adminRejectWithdraw('${ch.key}', '${w.uid}', ${w.amount})" class="admin-btn" style="margin:0;">Reject (Refund)</button></div></div>`; }); } document.getElementById('admin-pending-withdraws').innerHTML = html || "<p style='font-size:13px; color:#777;'>No pending withdrawals.</p>"; });
             db.ref('complaints').orderByChild('status').equalTo('Pending').on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { let c = ch.val(); html += `<div style="background:#fff; padding:10px; border:1px solid #ddd; margin-bottom:5px; font-size:12px;"><b>${c.name}</b> (${c.type})<br><div style="background:#f9f9f9; padding:5px; margin:5px 0; border-left:3px solid #3498db;">${c.message}</div><textarea id="comp-reply-${ch.key}" class="form-control" rows="2" placeholder="Write Company Reply here..." style="font-size:12px; padding:8px;"></textarea><button onclick="adminResolveComplaint('${ch.key}')" class="admin-btn approve-btn" style="width:100%;">Reply & Mark Resolved</button></div>`; }); } document.getElementById('admin-pending-complaints').innerHTML = html || "<p style='font-size:13px; color:#777;'>No pending complaints.</p>"; });
             db.ref('users').once('value', snap => { 
