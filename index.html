@@ -124,6 +124,9 @@
         .eb-item { text-align: center; }
         .eb-item p { font-size: 10px; color: #777; font-weight: bold; }
         .eb-item span { font-size: 12px; color: #2ecc71; font-weight: bold; }
+
+        /* COMING SOON CSS FOR OFF PLANS */
+        .coming-soon-badge { color: #e74c3c; font-family: 'Times New Roman', serif; font-size: 24px; font-weight: bold; margin: 20px 0; display: block; }
     </style>
 </head>
 <body>
@@ -644,7 +647,7 @@
 
                     <!-- MANAGE / REMOVE PLANS -->
                     <div class="admin-card" style="border-left-color: #e74c3c;">
-                        <h3 style="margin-bottom:10px; color:#e74c3c;"><i class="fas fa-trash-alt"></i> Manage / Remove Plans</h3>
+                        <h3 style="margin-bottom:10px; color:#e74c3c;"><i class="fas fa-trash-alt"></i> Manage / On-Off Plans</h3>
                         <div id="admin-manage-plans"></div>
                     </div>
 
@@ -778,18 +781,18 @@
         
         // UPDATED PLANS ACCORDING TO IMAGE (90 DAYS)
         const defaultPlans = {
-            1: {name: 'STARTER', price: 600 , videos: 10, ad_reward: 2.5, days: 90}, 
-            2: {name: 'BASIC', price: 1600, videos: 10, ad_reward: 5.9, days: 90},
-            3: {name: 'STANDARD', price: 3200, videos: 10, ad_reward: 8.9, days: 90}, 
-            4: {name: 'PRO', price: 6400, videos: 10, ad_reward: 25, days: 90},
-            5: {name: 'PREMIUM', price: 12800, videos: 10, ad_reward: 50, days: 90}, 
-            6: {name: 'SPECIAL', price: 25600, videos: 10, ad_reward: 100, days: 90},
-            7: {name: 'ELITE', price: 51200, videos: 10, ad_reward: 195, days: 90},
-            8: {name: 'MASTER', price: 102400, videos: 10, ad_reward: 370, days: 90},
-            9: {name: 'GRAND', price: 204800, videos: 10, ad_reward: 715, days: 90},
-            10: {name: 'ULTIMATE', price: 409600, videos: 10, ad_reward: 1600, days: 90},
-            11: {name: 'MAXIMUM', price: 819200, videos: 10, ad_reward: 3100, days: 90},
-            12: {name: 'LEGENDARY', price: 1638400, videos: 10, ad_reward: 6200, days: 90} 
+            1: {name: 'STARTER', price: 600, videos: 10, ad_reward: 5, days: 90, status: 'active'}, 
+            2: {name: 'BASIC', price: 1600, videos: 10, ad_reward: 7, days: 90, status: 'active'},
+            3: {name: 'STANDARD', price: 3200, videos: 10, ad_reward: 15, days: 90, status: 'active'}, 
+            4: {name: 'PRO', price: 6400, videos: 10, ad_reward: 25, days: 90, status: 'active'},
+            5: {name: 'PREMIUM', price: 12800, videos: 10, ad_reward: 50, days: 90, status: 'active'}, 
+            6: {name: 'SPECIAL', price: 25600, videos: 10, ad_reward: 100, days: 90, status: 'active'},
+            7: {name: 'ELITE', price: 51200, videos: 10, ad_reward: 195, days: 90, status: 'active'},
+            8: {name: 'MASTER', price: 102400, videos: 10, ad_reward: 370, days: 90, status: 'active'},
+            9: {name: 'GRAND', price: 204800, videos: 10, ad_reward: 715, days: 90, status: 'active'},
+            10: {name: 'ULTIMATE', price: 409600, videos: 10, ad_reward: 1600, days: 90, status: 'active'},
+            11: {name: 'MAXIMUM', price: 819200, videos: 10, ad_reward: 3100, days: 90, status: 'active'},
+            12: {name: 'LEGENDARY', price: 1638400, videos: 10, ad_reward: 6200, days: 90, status: 'active'} 
         };
 
         db.ref('plans').on('value', snap => {
@@ -1171,10 +1174,18 @@
                     let daily = (p.videos || 10) * (p.ad_reward || 5);
                     let monthly = daily * 30;
 
+                    // CHECK IF PLAN IS ON OR OFF
+                    let isOff = (p.status === 'off');
+
                     html += `
-                    <div class="profile-card" style="border:2px solid #3498db; text-align:center;">
+                    <div class="profile-card" style="border:2px solid ${isOff ? '#ccc' : '#3498db'}; text-align:center; opacity: ${isOff ? '0.8' : '1'};">
                         <h3 style="color:#1a4a4a;">TITANIC ${p.name}</h3>
-                        <h2 style="margin:10px 0;">Rs. ${p.price}</h2>
+                        
+                        ${isOff ? 
+                            `<span class="coming-soon-badge">COMING SOON</span>` : 
+                            `<h2 style="margin:10px 0;">Rs. ${p.price}</h2>`
+                        }
+                        
                         <p style="font-size:12px; color:#666; margin-bottom:5px;">Validity: 90 Days</p>
                         <p style="font-size:12px; color:#ff5722; font-weight:bold; margin-bottom:10px;">Daily: ${p.videos} Ads </p>
                         
@@ -1185,7 +1196,10 @@
                         </div>
                         <p style="font-size:11px; color:#3498db; margin:10px 0; font-weight:bold;">Total 90-Day Earning: Rs. ${monthly * 3}</p>
                         
-                        <button onclick="selectPlan(${id})" class="auth-btn-new" style="margin:0;">BUY PLAN</button>
+                        ${isOff ? 
+                            `<button disabled class="auth-btn-new" style="margin:0; background:#95a5a6; cursor:not-allowed;">UNAVAILABLE</button>` : 
+                            `<button onclick="selectPlan(${id})" class="auth-btn-new" style="margin:0;">BUY PLAN</button>`
+                        }
                     </div>`; 
                 }
             }
@@ -1218,7 +1232,15 @@
             } else {
                 formCard.style.display = 'block'; statCard.style.display = 'none';
                 selectBox.innerHTML = "";
-                for(let id in plans) { let opt = document.createElement('option'); opt.value = id; opt.text = `TITANIC ${plans[id].name} - Rs. ${plans[id].price}`; selectBox.add(opt); }
+                for(let id in plans) { 
+                    // ONLY SHOW ACTIVE PLANS IN RENEWAL
+                    if(plans[id].status !== 'off') {
+                        let opt = document.createElement('option'); 
+                        opt.value = id; 
+                        opt.text = `TITANIC ${plans[id].name} - Rs. ${plans[id].price}`; 
+                        selectBox.add(opt); 
+                    }
+                }
             }
         }
         function submitRenewal() {
@@ -1672,7 +1694,8 @@
             let maxId = 0;
             for(let key in plans) { if(parseInt(key) > maxId) maxId = parseInt(key); }
             let newId = maxId + 1;
-            db.ref('plans/' + newId).set({ name: n, price: p, videos: v, ad_reward: r, days: d }).then(() => {
+            // NEW PLAN SAVED AS ACTIVE BY DEFAULT
+            db.ref('plans/' + newId).set({ name: n, price: p, videos: v, ad_reward: r, days: d, status: 'active' }).then(() => {
                 alert("New Plan Added Successfully!");
                 document.getElementById('new-plan-name').value = '';
                 document.getElementById('new-plan-price').value = '';
@@ -1681,19 +1704,47 @@
                 document.getElementById('new-plan-days').value = '90';
             });
         }
+
+        // ================= UPDATED ADMIN MANAGE PLANS WITH TOGGLE =================
         function loadAdminManagePlansUI() {
             let plansHtml = "";
             for(let id in plans) {
-                let d = plans[id].days ? plans[id].days : 90;
-                plansHtml += `<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:10px; border:1px solid #ddd; margin-bottom:5px; border-radius:5px;"><span style="font-size:13px;"><b>${plans[id].name}</b><br><span style="color:#2ecc71;">Rs. ${plans[id].price}</span> | ${d} Days | ${plans[id].videos} Ads</span><button onclick="adminDeletePlan('${id}')" class="admin-btn" style="margin:0;">Delete</button></div>`;
+                let p = plans[id];
+                let d = p.days ? p.days : 90;
+                let isOff = (p.status === 'off');
+
+                plansHtml += `
+                <div style="background:#fff; padding:10px; border:1px solid #ddd; margin-bottom:8px; border-radius:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:13px;">
+                            <b>${p.name}</b> (${isOff ? '<span style="color:red; font-weight:bold;">OFF</span>' : '<span style="color:green; font-weight:bold;">ON</span>'})<br>
+                            <span style="color:#2ecc71;">Rs. ${p.price}</span> | ${d} Days
+                        </span>
+                        <div style="display:flex; align-items:center;">
+                            <button onclick="adminTogglePlanStatus('${id}', '${p.status || 'active'}')" class="admin-btn" style="background:${isOff ? '#2ecc71' : '#f39c12'}; min-width:80px;">
+                                ${isOff ? 'Turn ON' : 'Turn OFF'}
+                            </button>
+                            <button onclick="adminDeletePlan('${id}')" class="admin-btn" style="margin:0;">Delete</button>
+                        </div>
+                    </div>
+                </div>`;
             }
             document.getElementById('admin-manage-plans').innerHTML = plansHtml || "<p style='font-size:12px; color:#777;'>No plans available.</p>";
         }
+
+        function adminTogglePlanStatus(id, currentStatus) {
+            let nextStatus = (currentStatus === 'off') ? 'active' : 'off';
+            db.ref('plans/' + id).update({ status: nextStatus }).then(() => {
+                alert("Plan " + plans[id].name + " is now " + (nextStatus === 'off' ? "OFF (Coming Soon)" : "ON (Active)"));
+            });
+        }
+
         function adminDeletePlan(id) {
             if(confirm("Warning! Are you sure you want to remove this plan? Users currently using this plan might be affected.")) {
                 db.ref('plans/' + id).remove().then(() => alert("Plan Removed Successfully!"));
             }
         }
+
         function adminCreatePromo() { let n = document.getElementById('admin-promo-name').value.toUpperCase().trim(); let a = parseInt(document.getElementById('admin-promo-amt').value); if(!n || !a) return alert("Fill fields!"); db.ref('promos/'+n).set({ amount: a }).then(()=>{ alert("Promo Created!"); document.getElementById('admin-promo-name').value = ""; document.getElementById('admin-promo-amt').value = ""; }); }
         function adminDeletePromo(code) { if(confirm("Delete promo?")) db.ref('promos/'+code).remove(); }
         function adminApprovePlan(uid) { 
@@ -1716,7 +1767,7 @@
         }
         function adminRejectPlan(uid) { let res = document.getElementById('plan-rej-'+uid).value; if(!res) return alert("Enter reason!"); db.ref('users/'+uid).update({ plan_status: 'none', plan_id: -1, plan_reject_reason: res }).then(()=>alert("Rejected!")); }
         function adminApproveRenewal(uid) { db.ref('users/'+uid).update({ renew_plan_status: 'active', renew_reject_reason: '' }).then(()=>alert("Renewal Approved! It will auto-activate on expiry.")); }
-        function adminRejectRenewal(uid) { let res = document.getElementById('renew-rej-'+uid).value; if(!res) return alert("Enter reason!"); db.ref('users/'+uid).update({ renew_plan_status: 'none', renew_plan_id: -1, renew_reject_reason: res }).then(()=>alert("Renewal Rejected!")); }
+        function adminRejectRenewal(uid) { let res = document.getElementById('renew-rej-${ch.key}').value; if(!res) return alert("Enter reason!"); db.ref('users/'+uid).update({ renew_plan_status: 'none', renew_plan_id: -1, renew_reject_reason: res }).then(()=>alert("Renewal Rejected!")); }
         function adminApproveWithdraw(wId, uid, amt) { db.ref('withdrawals/'+wId).update({ status: 'Approved' }).then(()=>alert("Approved!")); }
         function adminRejectWithdraw(wId, uid, amt) { let res = document.getElementById('with-rej-'+wId).value; if(!res) return alert("Enter reason!"); db.ref('users/'+uid).once('value', s=>{ let bal = s.val().balance||0; let totW = s.val().total_withdraw||0; db.ref('users/'+uid).update({ balance: bal+amt, total_withdraw: totW-amt }).then(()=>{ db.ref('withdrawals/'+wId).update({ status: 'Rejected', reject_reason: res }); alert("Rejected & Refunded!"); }); }); }
         function adminResolveComplaint(cId) { let res = document.getElementById('comp-reply-'+cId).value; if(!res) return alert("Write reply!"); db.ref('complaints/'+cId).update({ status: 'Resolved', admin_reply: res }).then(()=>alert("Resolved!")); }
