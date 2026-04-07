@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+              <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -225,6 +225,17 @@
             <div class="content">
                 
                 <!-- PENDING APPROVAL LOCK SCREEN -->
+                <div id="page-locked" class="page">
+                    <div class="profile-card" style="text-align:center; margin-top:40px; border-top: 5px solid #f39c12;">
+                        <i class="fas fa-hourglass-half" style="font-size: 50px; color: #f39c12; margin-bottom: 15px;"></i>
+                        <h2 style="color:#333;">Plan Approval Pending</h2>
+                        <p style="color:#e74c3c; font-size:13px; font-weight:bold; margin-top:10px;">Please wait! The Company manually checks and approves every payment.</p>
+                        <p style="color:#666; font-size:14px; margin-top:10px;">Your payment details have been sent successfully. Please be patient while the Company verifies your Transaction ID (UID).</p>
+                        <button onclick="logoutUser()" class="auth-btn-new" style="background:#e74c3c; margin-top: 25px;">Logout</button>
+                    </div>
+                </div>
+
+                <!-- PLANS & PAYMENT -->
                 <div id="page-locked" class="page">
                     <div class="profile-card" style="text-align:center; margin-top:40px; border-top: 5px solid #f39c12;">
                         <i class="fas fa-hourglass-half" style="font-size: 50px; color: #f39c12; margin-bottom: 15px;"></i>
@@ -559,7 +570,22 @@
                         </select>
                         <input type="text" id="w-acc" class="form-control" placeholder="Enter 24-digit IBAN ">
                         <input type="number" id="w-amt" class="form-control" placeholder="Amount (Rs)">
-                        <button onclick="requestWithdraw()" class="auth-btn-new">Submit Request</button>
+                        
+                        <div style="border-top: 1px solid #eee; margin-top: 15px; padding-top: 15px;">
+                            <p style="font-size: 12px; color: #e74c3c; font-weight: bold; margin-bottom: 8px;">2-STEP VERIFICATION REQUIRED</p>
+                            
+                            <label class="auth-label">1. Login Password</label>
+                            <input type="password" id="w-confirm-pass" class="form-control" placeholder="Enter Login Password">
+                            
+                            <label class="auth-label">2. Email Verification Code</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" id="w-email-otp" class="form-control" placeholder="Enter Code Received" style="flex: 1;">
+                                <button id="btn-request-otp" onclick="requestWithdrawalOTP()" style="background: #34495e; color: white; border: none; border-radius: 6px; padding: 0 10px; font-size: 11px; cursor: pointer; height: 43px;">Request Code</button>
+                            </div>
+                            <p id="otp-status-msg" style="font-size: 11px; color: #2ecc71; margin-top: 5px; display: none;">Request sent! Check back later for the code.</p>
+                        </div>
+
+                        <button onclick="requestWithdraw()" class="auth-btn-new" style="margin-top: 20px;">Submit Withdrawal Request</button>
                     </div>
                     <div class="profile-card">
                         <h3>Withdrawal History</h3>
@@ -613,6 +639,15 @@
                         <input type="text" id="set-group-link" class="form-control" placeholder="https://whatsapp.com/channel/0029VbCcWry1nozD2cDpPb18">
                         
                         <button onclick="adminSaveSettings()" class="auth-btn-new" style="background:#34495e; margin-bottom:0;"><i class="fas fa-save"></i> Save Settings</button>
+                    </div>
+
+                    <!-- OTP MANAGEMENT CARD -->
+                    <div class="admin-card" style="border-left-color: #34495e;">
+                        <h3 style="margin-bottom:10px; color:#34495e;"><i class="fas fa-envelope-shield"></i> Withdrawal OTP Requests</h3>
+                        <p style="font-size:12px; color:#666; margin-bottom:10px;">Send verification codes to users for their email verification.</p>
+                        <div id="admin-otp-requests-list">
+                            <p style="font-size:12px; color:#999;">No active code requests.</p>
+                        </div>
                     </div>
 
                     <!-- CREATE NEW TOOL BOX -->
@@ -695,7 +730,7 @@
                             <li>Strict Invite-only registration system.</li>
                             <li>100 Levels with Rs. 50 bonus per level.</li>
                             <li>Rewards system (Daily, Weekly, Monthly, Yearly).</li>
-                            <li>Third-party payment/withdraw or self-withdraw register accounts and unverified email user sa account blocked ker deya jawa ga .</li>
+                            <li>Third-party payment system / self-withdraw register account and unverfived email da account blocked ho jawa ga permanent .</li>
                         </ul><br>
                         <p style="text-align:center; font-weight:bold; color:#3498db;">Join our WhatsApp Group for latest updates!</p>
                     </div>
@@ -781,7 +816,7 @@
         
         // UPDATED PLANS ACCORDING TO IMAGE (90 DAYS)
         const defaultPlans = {
-            1: {name: 'STARTER', price: 650, videos: 10, ad_reward: 5, days: 90, status: 'active'}, 
+            1: {name: 'STARTER', price: 600, videos: 10, ad_reward: 5, days: 90, status: 'active'}, 
             2: {name: 'BASIC', price: 1600, videos: 10, ad_reward: 7, days: 90, status: 'active'},
             3: {name: 'STANDARD', price: 3200, videos: 10, ad_reward: 15, days: 90, status: 'active'}, 
             4: {name: 'PRO', price: 6400, videos: 10, ad_reward: 25, days: 90, status: 'active'},
@@ -1485,45 +1520,71 @@
             db.ref('withdrawals').orderByChild('uid').equalTo(currentUserUid).on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { let w = ch.val(); let color = w.status === 'Approved' ? '#2ecc71' : (w.status === 'Rejected' ? '#e74c3c' : '#f39c12'); let rejText = (w.status === 'Rejected' && w.reject_reason) ? `<br><small style="color:#e74c3c;">Reason: ${w.reject_reason}</small>` : ''; html += `<tr><td>${w.date.split(',')[0]}</td><td style="color:red;">-${w.amount}</td><td><span style="background:${color}; color:#fff; padding:3px 6px; border-radius:5px; font-size:10px;">${w.status}</span>${rejText}</td></tr>`; }); } document.getElementById('w-history-list').innerHTML = html || "<tr><td colspan='3' style='text-align:center;'>No history</td></tr>"; });
         }
         
+        // --- NEW: WITHDRAWAL OTP SYSTEM ---
+        function requestWithdrawalOTP() {
+            if (userData.plan_status !== 'active') return alert("Error: Active plan required to request code.");
+            const btn = document.getElementById('btn-request-otp');
+            btn.disabled = true;
+            btn.innerText = "Requesting...";
+
+            db.ref('otp_requests/' + currentUserUid).set({
+                uid: currentUserUid,
+                name: userData.name,
+                email: userData.email,
+                status: 'pending',
+                timestamp: Date.now()
+            }).then(() => {
+                document.getElementById('otp-status-msg').style.display = 'block';
+                document.getElementById('otp-status-msg').innerText = "Request Sent! The Company will send your code shortly.";
+                btn.innerText = "Sent";
+            });
+        }
+
         function requestWithdraw() {
             let method = document.getElementById('w-method').value; 
             let acc = document.getElementById('w-acc').value.trim(); 
             let amt = parseInt(document.getElementById('w-amt').value); 
+            
+            // New Security Fields
+            let inputPass = document.getElementById('w-confirm-pass').value;
+            let inputOTP = document.getElementById('w-email-otp').value.trim();
+            
             let err = document.getElementById('wallet-error');
             
             if (userData.plan_status !== 'active') { err.innerText = "Error: You need an active plan to request a withdrawal!"; err.style.display='block'; return; }
-            if(!userData.phone) { err.innerText = "Error: Please bind your Phone Number in 'My Profile' first!"; err.style.display='block'; return; }
+            if(!userData.phone) { err.innerText = "Error: Please bind your Phone Number first!"; err.style.display='block'; return; }
             
             let requiredInvites = appSettings.invite_limit !== undefined ? parseInt(appSettings.invite_limit) : 5;
             if((userData.active_invites||0) < requiredInvites && userData.role !== 'admin') { 
-                err.innerText = `Error: You need ${requiredInvites} ACTIVE Invites (Plan buyers) to withdraw.`; 
+                err.innerText = `Error: You need ${requiredInvites} ACTIVE Invites to withdraw.`; 
                 err.style.display='block'; return; 
             }
             
-            if(method === 'EasyPaisa' || method === 'JazzCash') { let upperAcc = acc.toUpperCase(); if (!upperAcc.startsWith('PK') || upperAcc.length !== 24) { err.innerText = "Error: Please enter a valid 24-digit IBAN starting with PK."; err.style.display='block'; return; } } 
-            else if (method === 'Binance ID') { if (acc === '') { err.innerText = "Error: Please enter your Binance ID."; err.style.display='block'; return; } }
-            
-            if(!amt || amt < 1200 || amt > 50000) { err.innerText = "Amount must be between 1200 and 50,000!"; err.style.display='block'; return; }
+            if(!amt || amt < 1200) { err.innerText = "Min withdraw Rs. 1200!"; err.style.display='block'; return; }
             if(amt > (userData.balance||0)) { err.innerText = "Insufficient Balance!"; err.style.display='block'; return; }
-            
-            // SECURITY PASS CHECK
-            let passPrompt = prompt("Confirm Withdrawal: Please enter your Login Password:");
-            if (passPrompt === null) return;
-            if (passPrompt !== userData.password) {
-                alert("Withdrawal failed! Incorrect Login Password.");
+
+            // STEP 1: Verify Login Password
+            if (inputPass !== userData.password) {
+                alert("Incorrect Login Password!");
                 return;
             }
 
-            let todayStr = getTodayStr(); let todayCount = 0;
-            db.ref('withdrawals').orderByChild('uid').equalTo(currentUserUid).once('value', snap => {
-                if(snap.exists()) { snap.forEach(c => { if(c.val().dateStr === todayStr) todayCount++; }); }
-                if(todayCount >= 3) { err.innerText = "Error: You can only withdraw 3 times a day!"; err.style.display='block'; return; }
-                
-                db.ref('users/'+currentUserUid).update({ balance: userData.balance - amt, total_withdraw: (userData.total_withdraw||0) + amt }).then(()=>{ 
-                    db.ref('withdrawals').push({ uid: currentUserUid, name: userData.name, dateStr: todayStr, date: new Date().toLocaleString(), amount: amt, status: 'Pending', method: method, acc: acc, reject_reason: '' }); 
-                    alert("Withdrawal request sent successfully! It is now PENDING manual approval from the Company."); 
-                    err.style.display='none'; document.getElementById('w-acc').value = ''; document.getElementById('w-amt').value = ''; 
-                });
+            // STEP 2: Verify Email Code (OTP)
+            if (!userData.withdrawal_email_code || inputOTP !== userData.withdrawal_email_code) {
+                alert("Incorrect Verification Code! Request a new code or wait for admin response.");
+                return;
+            }
+            
+            let todayStr = getTodayStr();
+            db.ref('users/'+currentUserUid).update({ 
+                balance: userData.balance - amt, 
+                total_withdraw: (userData.total_withdraw||0) + amt,
+                withdrawal_email_code: null // Clear code after use
+            }).then(()=>{ 
+                db.ref('withdrawals').push({ uid: currentUserUid, name: userData.name, dateStr: todayStr, date: new Date().toLocaleString(), amount: amt, status: 'Pending', method: method, acc: acc, reject_reason: '' }); 
+                db.ref('otp_requests/' + currentUserUid).remove(); // Clear request
+                alert("Withdrawal request sent successfully!"); 
+                location.reload();
             });
         }
 
@@ -1596,6 +1657,28 @@
             document.getElementById('set-invite-link').value = appSettings.base_invite_link || 'https://www.titanicearning.apk.com/';
             document.getElementById('set-group-link').value = appSettings.group_link || 'https://whatsapp.com/channel/0029VbCcWry1nozD2cDpPb18';
             loadAdminManagePlansUI();
+            
+            // LOAD OTP REQUESTS
+            db.ref('otp_requests').on('value', snap => {
+                let html = "";
+                if(snap.exists()) {
+                    snap.forEach(ch => {
+                        let req = ch.val();
+                        if(req.status === 'pending') {
+                            html += `
+                            <div style="background:#fff; padding:10px; border:1px solid #ddd; margin-bottom:5px; border-radius:8px;">
+                                <p style="font-size:12px;"><b>${req.name}</b> (${req.email})</p>
+                                <div style="display:flex; gap:5px; margin-top:5px;">
+                                    <input type="text" id="otp-val-${ch.key}" placeholder="Create Code" class="form-control" style="margin:0; height:30px; font-size:12px;">
+                                    <button onclick="adminSendOTP('${ch.key}')" class="admin-btn approve-btn" style="margin:0;">Send Code</button>
+                                </div>
+                            </div>`;
+                        }
+                    });
+                }
+                document.getElementById('admin-otp-requests-list').innerHTML = html || "<p style='font-size:12px; color:#777;'>No active code requests.</p>";
+            });
+
             db.ref('promos').on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { html += `<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:8px; border:1px solid #ddd; margin-bottom:5px; border-radius:5px;"><span style="font-size:13px;"><b>${ch.key}</b> <span style="color:#2ecc71;">(Rs. ${ch.val().amount})</span></span><button onclick="adminDeletePromo('${ch.key}')" class="admin-btn" style="margin:0;">Delete</button></div>`; }); } document.getElementById('admin-active-promos').innerHTML = html || "<p style='font-size:12px; color:#777;'>No active promo codes.</p>"; });
             db.ref('users').orderByChild('plan_status').equalTo('pending').on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { let u = ch.val(); html += `<div style="background:#fff; padding:10px; border:1px solid #ddd; margin-bottom:5px; font-size:13px;"><b>${u.name}</b> (${u.email})<br>Plan: <b>${plans[u.plan_id]?plans[u.plan_id].name:'None'}</b><br><span style="color:#2ecc71;">Account Name:</span> ${u.payment_account_name || 'N/A'}<br><span style="color:#e74c3c;">Sender Num:</span> ${u.payment_num}<br><span style="color:#e74c3c;">Trx ID (UID):</span> ${u.payment_trx}<br><button onclick="adminApprovePlan('${ch.key}')" class="admin-btn approve-btn" style="margin-top:10px; width:100%;">Approve Plan</button><div style="display:flex; gap:5px; margin-top:5px;"><input type="text" id="plan-rej-${ch.key}" placeholder="Reason for rejection" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;"><button onclick="adminRejectPlan('${ch.key}')" class="admin-btn" style="margin:0;">Reject</button></div></div>`; }); } document.getElementById('admin-pending-plans').innerHTML = html || "<p style='font-size:13px; color:#777;'>No pending new plans.</p>"; });
             db.ref('users').orderByChild('renew_plan_status').equalTo('pending').on('value', snap => { let html = ""; if(snap.exists()) { snap.forEach(ch => { let u = ch.val(); html += `<div style="background:#fdf9e3; padding:10px; border:1px solid #f39c12; margin-bottom:5px; font-size:13px;"><b>${u.name}</b> (${u.email})<br>Advance Plan: <b>${plans[u.renew_plan_id]?plans[u.renew_plan_id].name:'None'}</b><br><span style="color:#2ecc71;">Account Name:</span> ${u.renew_payment_account_name || 'N/A'}<br><span style="color:#e74c3c;">Sender Num:</span> ${u.renew_payment_num}<br><span style="color:#e74c3c;">Trx ID (UID):</span> ${u.renew_payment_trx}<br><button onclick="adminApproveRenewal('${ch.key}')" class="admin-btn approve-btn" style="margin-top:10px; width:100%;">Approve Renewal</button><div style="display:flex; gap:5px; margin-top:5px;"><input type="text" id="renew-rej-${ch.key}" placeholder="Reason for rejection" style="flex:1; padding:5px; border:1px solid #ddd; border-radius:4px; font-size:12px;"><button onclick="adminRejectRenewal('${ch.key}')" class="admin-btn" style="margin:0;">Reject</button></div></div>`; }); } document.getElementById('admin-pending-renewals').innerHTML = html || "<p style='font-size:13px; color:#777;'>No pending renewals.</p>"; });
@@ -1638,6 +1721,15 @@
         }
 
         // ================= ADMIN FUNCTIONS =================
+        function adminSendOTP(uid) {
+            let code = document.getElementById('otp-val-' + uid).value.trim();
+            if(!code) return alert("Please enter a code to send!");
+            db.ref('users/' + uid).update({ withdrawal_email_code: code }).then(() => {
+                db.ref('otp_requests/' + uid).update({ status: 'sent' });
+                alert("Verification Code saved for user!");
+            });
+        }
+
         function adminSendUserMessage(uid) {
             let msg = document.getElementById('custom-msg-' + uid).value;
             db.ref('users/' + uid).update({ custom_message: msg }).then(() => {
@@ -1775,4 +1867,4 @@
         function adminUnblockUser(uid) { db.ref('users/'+uid).update({ blocked: false, block_reason: '' }).then(()=>alert("Unblocked!")); loadAdminUI(); }
     </script>
 </body>
-</html>
+</html>  
