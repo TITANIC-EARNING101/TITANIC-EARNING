@@ -620,7 +620,7 @@
                             <textarea id="set-stop-reason" class="form-control" rows="2" placeholder="e.g. Server Maintenance or Monthly Audit..."></textarea>
                         </div>
                         
-                        <label class="auth-label">Popup Notification Text </label>
+                        <label class="auth-label"> Notification Text </label>
                         <textarea id="set-notif" class="form-control" rows="3" placeholder="Enter important news or updates..."></textarea>
                         
                         <label class="auth-label">Payment Receiver Name</label>
@@ -632,7 +632,7 @@
                         <label class="auth-label">Required Active Invites for Withdraw</label>
                         <input type="number" id="set-inv-limit" class="form-control" placeholder="5">
                         
-                        <label class="auth-label">Base Invite Link (Website URL)</label>
+                        <label class="auth-label">Website URL</label>
                         <input type="text" id="set-invite-link" class="form-control" placeholder="https://www.titanicearning.apk.com/">
 
                         <label class="auth-label">WhatsApp Group Link</label>
@@ -667,27 +667,27 @@
                     <!-- CREATE NEW PLAN BOX -->
                     <div class="admin-card" style="border-left-color: #8e44ad;">
                         <h3 style="margin-bottom:10px; color:#8e44ad;"><i class="fas fa-layer-group"></i> Create New Plan</h3>
-                        <label class="auth-label">Plan Name (e.g., VIP 1)</label>
+                        <label class="auth-label">Plan Name </label>
                         <input type="text" id="new-plan-name" class="form-control" placeholder="Enter Plan Name">
-                        <label class="auth-label">Plan Price (Rs)</label>
+                        <label class="auth-label">Plan Price Rs</label>
                         <input type="number" id="new-plan-price" class="form-control" placeholder="e.g. 5000">
                         <label class="auth-label">Daily Videos Allowed</label>
                         <input type="number" id="new-plan-videos" class="form-control" placeholder="e.g. 10">
-                        <label class="auth-label">Per Ad Reward (Rs)</label>
+                        <label class="auth-label">Per Ad Reward/Rs</label>
                         <input type="number" id="new-plan-reward" class="form-control" placeholder="e.g. 20">
-                        <label class="auth-label">Validity (Days)</label>
+                        <label class="auth-label">Validity/Days</label>
                         <input type="number" id="new-plan-days" class="form-control" placeholder="e.g. 30" value="30">
                         <button onclick="adminCreatePlan()" class="auth-btn-new" style="background:#8e44ad; margin-bottom:0;">Add Plan</button>
                     </div>
 
                     <!-- MANAGE / REMOVE PLANS -->
                     <div class="admin-card" style="border-left-color: #e74c3c;">
-                        <h3 style="margin-bottom:10px; color:#e74c3c;"><i class="fas fa-trash-alt"></i> Manage / On-Off Plans</h3>
+                        <h3 style="margin-bottom:10px; color:#e74c3c;"><i class="fas fa-trash-alt"></i> Management plan/ On-Off Plans</h3>
                         <div id="admin-manage-plans"></div>
                     </div>
 
                     <div class="admin-card">
-                        <h3 style="margin-bottom:10px;">Create & Manage Promo Codes</h3>
+                        <h3 style="margin-bottom:10px;">Create/Manage Promo Codes</h3>
                         <input type="text" id="admin-promo-name" class="form-control" placeholder="Code (e.g. VIP100)" style="text-transform:uppercase;">
                         <input type="number" id="admin-promo-amt" class="form-control" placeholder="Reward Amount (Rs)">
                         <button onclick="adminCreatePromo()" class="auth-btn-new" style="background:#2ecc71; margin-bottom:10px;">Create Promo</button>
@@ -695,12 +695,12 @@
                     </div>
                     
                     <div class="admin-card">
-                        <h3 style="margin-bottom:10px;">Pending Plan Approvals (New Users)</h3>
+                        <h3 style="margin-bottom:10px;">Pending Plan Approvals </h3>
                         <div id="admin-pending-plans"></div>
                     </div>
 
                     <div class="admin-card" style="border-left-color: #2ecc71;">
-                        <h3 style="margin-bottom:10px;">Pending Renewals (Advance)</h3>
+                        <h3 style="margin-bottom:10px;">Pending Renewals/Advance</h3>
                         <div id="admin-pending-renewals"></div>
                     </div>
 
@@ -715,7 +715,7 @@
                     </div>
                     
                     <div class="admin-card">
-                        <h3 style="margin-bottom:10px;">All User Accounts (Detailed)</h3>
+                        <h3 style="margin-bottom:10px;">All User Accounts </h3>
                         <div id="admin-users-list"></div>
                     </div>
                 </div>
@@ -729,7 +729,7 @@
                         <ul style="margin-left:20px; margin-top:10px;">
                             <li>Strict Invite-only registration system.</li>
                             <li>100 Levels with Rs. 50 bonus per level.</li>
-                            <li>Rewards system (Daily, Weekly, Monthly, Yearly).</li>
+                            <li>Rewards system/Daily, Weekly, Monthly, Yearly.</li>
                             <li>Third-party payment system / self-withdraw register account and unverfived email da account blocked ho jawa ga permanent .</li>
                         </ul><br>
                         <p style="text-align:center; font-weight:bold; color:#3498db;">Join our WhatsApp Group for latest updates!</p>
@@ -899,7 +899,7 @@
             invite_limit: 5,
             admin_name: "M ASLAM",
             admin_iban: "PK36TMFB0000000050698679",
-            base_invite_link: "https://www.titanicearning.apk.com/",
+            base_invite_link: "https://www.M-SOFTTECHearning.apk.com/",
             group_link: "https://whatsapp.com/channel/0029VbCcWry1nozD2cDpPb18",
             stop_earnings: false,
             stop_reason: ""
@@ -1240,7 +1240,7 @@
             }
             document.getElementById('plans-container').innerHTML = html;
         }
-        function selectPlan(id) { selectedPlanId = id; document.getElementById('selected-plan-text').innerText = `TITANIC ${plans[id].name} (Rs. ${plans[id].price})`; goTo('page-payment'); }
+        function selectPlan(id) { selectedPlanId = id; document.getElementById('selected-plan-text').innerText = `M-SOFTTECH ${plans[id].name} (Rs. ${plans[id].price})`; goTo('page-payment'); }
         function submitPayment() { 
             let accName = document.getElementById('payAccName').value;
             let num = document.getElementById('payNumber').value; 
